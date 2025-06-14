@@ -57,11 +57,13 @@
             </form>
         </div>
     </div>
+    
+    <div id="sidebar-overlay" class="hidden md:hidden fixed inset-0 bg-black bg-opacity-60 z-30"></div>
 
-    <div id="app-container" class="chat-container w-screen h-screen flex">
+    <div id="app-container" class="chat-container w-screen h-screen flex relative overflow-hidden">
         <!-- Sidebar for conversations -->
-        <aside class="sidebar w-full md:w-1/3 lg:w-1/4 h-full flex flex-col border-r" style="border-color: var(--border-color);">
-            <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);">
+        <aside id="sidebar" class="sidebar absolute md:relative inset-y-0 left-0 w-full md:w-1/3 lg:w-1/4 h-full flex flex-col border-r transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-40" style="border-color: var(--border-color);">
+            <header class="p-4 border-b flex justify-between items-center flex-shrink-0" style="border-color: var(--border-color);">
                 <h1 class="text-xl font-bold text-white">Discussions</h1>
                 <div class="flex items-center gap-2">
                     <div id="theme-switcher" class="relative">
@@ -83,17 +85,20 @@
         </aside>
 
         <!-- Main chat area -->
-        <main id="main-chat" class="flex-1 flex flex-col h-full">
+        <main id="main-chat" class="flex-1 flex flex-col h-full w-full">
             <div id="welcome-screen" class="flex flex-col items-center justify-center h-full text-center p-8">
                  <img id="welcome-avatar" src="/image/photodeprofil.jpg" alt="Chrice Avatar" class="w-24 h-24 rounded-full mb-4 object-cover" onerror="this.src='https://placehold.co/100x100/121212/E0E0E0?text=C'">
                  <h2 class="text-2xl font-bold text-white">Chrice</h2>
-                 <p style="color: var(--text-light);">Commencez une nouvelle discussion pour parler avec moi.</p>
+                 <p style="color: var(--text-light);">Sélectionnez ou créez une discussion pour commencer.</p>
             </div>
             
             <div id="chat-area" class="hidden flex-1 flex flex-col">
                 <header class="p-4 border-b flex items-center" style="border-color: var(--border-color);">
+                    <button id="menu-toggle-btn" class="md:hidden p-2 rounded-full mr-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
                     <img id="chat-avatar" src="/image/photodeprofil.jpg" alt="Chrice Avatar" class="w-10 h-10 rounded-full mr-3 object-cover" onerror="this.src='https://placehold.co/40x40/121212/E0E0E0?text=C'">
-                    <h2 id="chat-title" class="text-lg font-semibold text-white">Nouvelle Discussion</h2>
+                    <h2 id="chat-title" class="text-lg font-semibold text-white truncate">Nouvelle Discussion</h2>
                 </header>
                 <div id="chat-window" class="flex-1 p-4 overflow-y-auto"></div>
                 <footer class="p-4">
@@ -115,6 +120,9 @@
             const nameForm = document.getElementById('name-form');
             const nameInput = document.getElementById('name-input');
             const appContainer = document.getElementById('app-container');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const menuToggleBtn = document.getElementById('menu-toggle-btn');
             const newChatBtn = document.getElementById('new-chat-btn');
             const conversationList = document.getElementById('conversation-list');
             const welcomeScreen = document.getElementById('welcome-screen');
@@ -148,11 +156,26 @@
                 nameForm.addEventListener('submit', handleNameSubmit);
                 newChatBtn.addEventListener('click', createNewConversation);
                 aiForm.addEventListener('submit', handleFormSubmit);
-                themeBtn.addEventListener('click', () => themeMenu.classList.toggle('hidden'));
+                themeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    themeMenu.classList.toggle('hidden');
+                });
                 themeMenu.addEventListener('click', handleThemeChange);
+                menuToggleBtn.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+                document.addEventListener('click', (e) => {
+                    if (!themeBtn.contains(e.target) && !themeMenu.contains(e.target)) {
+                        themeMenu.classList.add('hidden');
+                    }
+                });
             }
 
-            // --- User and Theme Management ---
+            // --- UI & Theme Management ---
+            function toggleSidebar() {
+                sidebar.classList.toggle('-translate-x-full');
+                sidebarOverlay.classList.toggle('hidden');
+            }
+
             function loadUserName() {
                 const savedName = localStorage.getItem('chrice_user_name');
                 if (savedName) {
@@ -170,7 +193,7 @@
                     localStorage.setItem('chrice_user_name', userName);
                     nameModal.classList.add('hidden');
                     if (Object.keys(conversations).length === 0) {
-                        createNewConversation(true); // Create a first random conversation
+                        createNewConversation(true);
                     }
                 }
             }
@@ -183,15 +206,13 @@
             function handleThemeChange(e) {
                 e.preventDefault();
                 if (e.target.dataset.theme) {
-                    const theme = e.target.dataset.theme;
-                    applyTheme(theme);
-                    localStorage.setItem('chrice_theme', theme);
-                    themeMenu.classList.add('hidden');
+                    applyTheme(e.target.dataset.theme);
+                    localStorage.setItem('chrice_theme', e.target.dataset.theme);
                 }
             }
 
             function applyTheme(theme) {
-                appContainer.className = `chat-container w-screen h-screen flex theme-${theme}`;
+                appContainer.className = `chat-container w-screen h-screen flex relative overflow-hidden theme-${theme}`;
             }
 
             // --- Conversation Management ---
@@ -230,20 +251,26 @@
                     "Tu penses à quoi là ? 😉", "Raconte-moi un truc que personne ne sait sur toi...", "Si tu pouvais avoir un super-pouvoir, ce serait quoi et pourquoi ?", "Hey, ça te dit de parler de projets un peu fous ?"
                 ];
                 
-                // Add a random starter message from Chrice
                 const starter = randomStarters[Math.floor(Math.random() * randomStarters.length)];
                 conversations[newId].messages.push({ role: 'assistant', content: starter });
 
                 saveConversations();
-                renderConversationList();
-                renderChatWindow();
+                selectConversation(newId);
                 aiInput.focus();
+                 if (window.innerWidth < 768) {
+                    toggleSidebar();
+                }
             }
 
             function selectConversation(id) {
                 activeConversationId = id;
                 renderConversationList();
                 renderChatWindow();
+                if (window.innerWidth < 768) {
+                   if (!sidebar.classList.contains('-translate-x-full')) {
+                       toggleSidebar();
+                   }
+                }
             }
             
             function renderChatWindow() {
@@ -260,7 +287,7 @@
                 chatTitle.textContent = titleText;
                 chatWindow.innerHTML = '';
                 conv.messages.forEach(msg => appendMessage(msg.content, msg.role, false));
-                chatWindow.scrollTop = chatWindow.scrollHeight;
+                setTimeout(() => chatWindow.scrollTop = chatWindow.scrollHeight, 0);
             }
 
             async function handleFormSubmit(e) {
