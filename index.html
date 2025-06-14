@@ -36,7 +36,6 @@
         .ai-message { background-color: var(--bg-ai-msg); }
         .conversation-item.active { background-color: var(--bg-input); }
         .conversation-item:hover { background-color: var(--bg-chat); }
-        .theme-btn:hover { background-color: var(--bg-main); }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333333; border-radius: 3px; }
@@ -47,13 +46,24 @@
     </style>
 </head>
 <body>
-    <!-- Name Prompt Modal -->
+    <!-- Name & Theme Prompt Modal -->
     <div id="name-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1A1A1A] p-8 rounded-lg shadow-xl text-center">
-            <h2 class="text-2xl font-bold mb-4 text-white">Avec qui ai-je l'honneur ?</h2>
+        <div class="bg-[#1A1A1A] p-8 rounded-lg shadow-xl text-center w-full max-w-sm">
+            <h2 class="text-2xl font-bold mb-4 text-white">Nouvelle Discussion</h2>
             <form id="name-form">
-                <input id="name-input" type="text" placeholder="Entre ton prénom..." class="chat-input w-full text-center rounded-lg py-3 px-5 text-lg mb-4" required>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Commencer la discussion</button>
+                <div class="mb-4">
+                    <label for="name-input" class="block text-left text-sm font-medium text-gray-400 mb-1">Votre prénom</label>
+                    <input id="name-input" type="text" placeholder="Ex: Alex" class="chat-input w-full text-center rounded-lg py-3 px-5 text-lg" required>
+                </div>
+                <div class="mb-6">
+                    <label for="theme-select" class="block text-left text-sm font-medium text-gray-400 mb-1">Thème de la discussion</label>
+                    <select id="theme-select" class="chat-input w-full text-center rounded-lg py-3 px-5 text-lg">
+                        <option value="dark">Sombre (Défaut)</option>
+                        <option value="light">Clair</option>
+                        <option value="love">Amour</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Commencer</button>
             </form>
         </div>
     </div>
@@ -65,21 +75,9 @@
         <aside id="sidebar" class="sidebar absolute md:relative inset-y-0 left-0 w-full md:w-1/3 lg:w-1/4 h-full flex flex-col border-r transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-40" style="border-color: var(--border-color);">
             <header class="p-4 border-b flex justify-between items-center flex-shrink-0" style="border-color: var(--border-color);">
                 <h1 class="text-xl font-bold">Discussions</h1>
-                <div class="flex items-center gap-2">
-                    <div id="theme-switcher" class="relative">
-                        <button id="theme-btn" class="p-2 rounded-full">
-                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
-                        </button>
-                        <div id="theme-menu" class="hidden absolute right-0 mt-2 w-40 bg-black rounded-lg shadow-xl border border-gray-700 z-10">
-                           <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800" data-theme="dark">Thème Sombre</a>
-                           <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800" data-theme="light">Thème Clair</a>
-                           <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800" data-theme="love">Thème Amour</a>
-                        </div>
-                    </div>
-                    <button id="new-chat-btn" class="p-2 rounded-full">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    </button>
-                </div>
+                <button id="new-chat-btn" class="p-2 rounded-full">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                </button>
             </header>
             <div id="conversation-list" class="flex-1 overflow-y-auto"></div>
         </aside>
@@ -87,9 +85,9 @@
         <!-- Main chat area -->
         <main id="main-chat" class="flex-1 flex flex-col h-full w-full">
             <div id="welcome-screen" class="flex flex-col items-center justify-center h-full text-center p-8">
-                 <img id="welcome-avatar" src="/image/photodeprofil.jpg" alt="Chrice Avatar" class="w-24 h-24 rounded-full mb-4 object-cover" onerror="this.src='https://placehold.co/100x100/121212/E0E0E0?text=C'">
+                 <img src="/image/photodeprofil.jpg" alt="Chrice Avatar" class="w-24 h-24 rounded-full mb-4 object-cover" onerror="this.src='https://placehold.co/100x100/121212/E0E0E0?text=C'">
                  <h2 class="text-2xl font-bold">Chrice</h2>
-                 <p style="color: var(--text-light);">Sélectionnez ou créez une discussion pour commencer.</p>
+                 <p style="color: var(--text-light);">Sélectionnez ou créez une discussion.</p>
             </div>
             
             <div id="chat-area" class="hidden flex-1 flex flex-col">
@@ -97,14 +95,14 @@
                     <button id="menu-toggle-btn" class="md:hidden p-2 rounded-full mr-2">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
-                    <img id="chat-avatar" src="/image/photodeprofil.jpg" alt="Chrice Avatar" class="w-10 h-10 rounded-full mr-3 object-cover" onerror="this.src='https://placehold.co/40x40/121212/E0E0E0?text=C'">
-                    <h2 id="chat-title" class="text-lg font-semibold truncate">Nouvelle Discussion</h2>
+                    <img src="/image/photodeprofil.jpg" alt="Chrice Avatar" class="w-10 h-10 rounded-full mr-3 object-cover" onerror="this.src='https://placehold.co/40x40/121212/E0E0E0?text=C'">
+                    <h2 id="chat-title" class="text-lg font-semibold truncate"></h2>
                 </header>
                 <div id="chat-window" class="flex-1 p-4 overflow-y-auto"></div>
                 <footer class="p-4">
                     <form id="ai-form" class="flex items-center gap-3">
                         <input id="ai-input" type="text" placeholder="Écris ton message..." class="chat-input w-full rounded-full py-3 px-5 text-sm">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 transition-colors text-white rounded-full w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-12 h-12 flex-shrink-0 flex items-center justify-center">
                             <svg class="w-6 h-6 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                         </button>
                     </form>
@@ -113,286 +111,267 @@
         </main>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // DOM Elements
-            const nameModal = document.getElementById('name-modal');
-            const nameForm = document.getElementById('name-form');
-            const nameInput = document.getElementById('name-input');
-            const appContainer = document.getElementById('app-container');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const menuToggleBtn = document.getElementById('menu-toggle-btn');
-            const newChatBtn = document.getElementById('new-chat-btn');
-            const conversationList = document.getElementById('conversation-list');
-            const welcomeScreen = document.getElementById('welcome-screen');
-            const chatArea = document.getElementById('chat-area');
-            const chatTitle = document.getElementById('chat-title');
-            const chatWindow = document.getElementById('chat-window');
-            const aiForm = document.getElementById('ai-form');
-            const aiInput = document.getElementById('ai-input');
-            const themeBtn = document.getElementById('theme-btn');
-            const themeMenu = document.getElementById('theme-menu');
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, serverTimestamp, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            // State
-            let conversations = {};
-            let activeConversationId = null;
+        // --- IMPORTANT: Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_AUTH_DOMAIN",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_STORAGE_BUCKET",
+            messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
+            appId: "VOTRE_APP_ID"
+        };
 
-            // --- Initialization ---
-            function init() {
-                loadTheme();
-                loadConversations();
-                if (Object.keys(conversations).length > 0) {
-                    selectConversation(Object.keys(conversations).sort((a,b) => b - a)[0]);
-                }
-                setupEventListeners();
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // DOM Elements
+        const nameModal = document.getElementById('name-modal');
+        const nameForm = document.getElementById('name-form');
+        const nameInput = document.getElementById('name-input');
+        const themeSelect = document.getElementById('theme-select');
+        const appContainer = document.getElementById('app-container');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const conversationList = document.getElementById('conversation-list');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const chatArea = document.getElementById('chat-area');
+        const chatTitle = document.getElementById('chat-title');
+        const chatWindow = document.getElementById('chat-window');
+        const aiForm = document.getElementById('ai-form');
+        const aiInput = document.getElementById('ai-input');
+
+        // State
+        let activeConversationId = null;
+        let currentUser = null;
+        let conversationsUnsubscribe = null;
+
+        // --- Initialization & Auth ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loadAndRenderConversations();
+            } else {
+                signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
             }
+        });
+        
+        function setupEventListeners() {
+            nameForm.addEventListener('submit', handleNameSubmit);
+            newChatBtn.addEventListener('click', () => nameModal.classList.remove('hidden'));
+            aiForm.addEventListener('submit', handleFormSubmit);
+            menuToggleBtn.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+        }
+        setupEventListeners();
+
+        // --- UI & Theme ---
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
+        }
+
+        async function handleNameSubmit(e) {
+            e.preventDefault();
+            const userName = nameInput.value.trim();
+            const theme = themeSelect.value;
+            if (userName) {
+                nameModal.classList.add('hidden');
+                nameInput.value = '';
+                await createNewConversation(userName, theme);
+            }
+        }
+
+        function applyTheme(theme) {
+            appContainer.className = `chat-container w-screen h-screen flex relative overflow-hidden theme-${theme}`;
+        }
+
+        // --- Firestore & Conversation Logic ---
+        function loadAndRenderConversations() {
+            if (!currentUser) return;
+            if (conversationsUnsubscribe) conversationsUnsubscribe();
+
+            const q = query(collection(db, 'users', currentUser.uid, 'conversations'), orderBy('lastUpdated', 'desc'));
             
-            function setupEventListeners() {
-                nameForm.addEventListener('submit', handleNameSubmit);
-                newChatBtn.addEventListener('click', () => nameModal.classList.remove('hidden'));
-                aiForm.addEventListener('submit', handleFormSubmit);
-                themeBtn.addEventListener('click', (e) => { e.stopPropagation(); themeMenu.classList.toggle('hidden'); });
-                themeMenu.addEventListener('click', handleThemeChange);
-                menuToggleBtn.addEventListener('click', toggleSidebar);
-                sidebarOverlay.addEventListener('click', toggleSidebar);
-                document.addEventListener('click', (e) => {
-                    if (!themeBtn.contains(e.target) && !themeMenu.contains(e.target)) {
-                        themeMenu.classList.add('hidden');
-                    }
-                });
-            }
-
-            // --- UI & Theme Management ---
-            function toggleSidebar() {
-                sidebar.classList.toggle('-translate-x-full');
-                sidebarOverlay.classList.toggle('hidden');
-            }
-            
-            function handleNameSubmit(e) {
-                e.preventDefault();
-                const userName = nameInput.value.trim();
-                if (userName) {
-                    nameModal.classList.add('hidden');
-                    nameInput.value = '';
-                    createNewConversation(userName);
+            conversationsUnsubscribe = onSnapshot(q, (snapshot) => {
+                const conversations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderConversationList(conversations);
+                if (!activeConversationId && conversations.length > 0) {
+                    selectConversation(conversations[0].id);
+                } else if (conversations.length === 0) {
+                     welcomeScreen.classList.remove('hidden');
+                     chatArea.classList.add('hidden');
                 }
-            }
+            });
+        }
+
+        function renderConversationList(conversations) {
+            conversationList.innerHTML = '';
+            conversations.forEach(conv => {
+                const lastMessage = conv.messages?.[conv.messages.length - 1]?.content || '...';
+                const item = document.createElement('div');
+                item.className = `conversation-item p-4 cursor-pointer border-b ${conv.id === activeConversationId ? 'active' : ''}`;
+                item.style.borderColor = 'var(--border-color)';
+                item.dataset.id = conv.id;
+                item.innerHTML = `<h3 class="font-semibold truncate">${conv.userName}</h3><p class="text-xs truncate" style="color:var(--text-light);">${lastMessage}</p>`;
+                item.addEventListener('click', () => selectConversation(conv.id));
+                conversationList.appendChild(item);
+            });
+        }
+
+        async function createNewConversation(userName, theme) {
+            if (!currentUser) return;
+            const starter = [ "Tu penses à quoi là ? 😉", "Raconte-moi un truc...", "Hey, ça te dit de parler de projets un peu fous ?" ][Math.floor(Math.random() * 3)];
             
-            function loadTheme() {
-                const savedTheme = localStorage.getItem('chrice_theme') || 'dark';
-                applyTheme(savedTheme);
-            }
-
-            function handleThemeChange(e) {
-                e.preventDefault();
-                if (e.target.dataset.theme) {
-                    applyTheme(e.target.dataset.theme);
-                    localStorage.setItem('chrice_theme', e.target.dataset.theme);
-                }
-            }
-
-            function applyTheme(theme) {
-                appContainer.className = `chat-container w-screen h-screen flex relative overflow-hidden theme-${theme}`;
-            }
-
-            // --- Conversation Management ---
-            function loadConversations() {
-                const saved = localStorage.getItem('chrice_conversations');
-                conversations = saved ? JSON.parse(saved) : {};
-                renderConversationList();
-            }
-
-            function saveConversations() {
-                localStorage.setItem('chrice_conversations', JSON.stringify(conversations));
-            }
+            const newConvRef = await addDoc(collection(db, 'users', currentUser.uid, 'conversations'), {
+                userName,
+                theme,
+                mood: 'normal',
+                createdAt: serverTimestamp(),
+                lastUpdated: serverTimestamp(),
+                messages: [{ role: 'assistant', content: starter, timestamp: Date.now() }]
+            });
             
-            function renderConversationList() {
-                conversationList.innerHTML = '';
-                Object.keys(conversations).sort((a, b) => b - a).forEach(id => {
-                    const conv = conversations[id];
-                    if (!conv.messages || conv.messages.length === 0) return;
-                    const item = document.createElement('div');
-                    item.className = `conversation-item p-4 cursor-pointer border-b ${id === activeConversationId ? 'active' : ''}`;
-                    item.style.borderColor = 'var(--border-color)';
-                    item.dataset.id = id;
-                    item.innerHTML = `<h3 class="font-semibold truncate">${conv.userName}</h3><p class="text-xs truncate" style="color:var(--text-light);">${conv.messages[conv.messages.length - 1].content}</p>`;
-                    item.addEventListener('click', () => selectConversation(id));
-                    conversationList.appendChild(item);
-                });
-            }
+            selectConversation(newConvRef.id);
+            if (window.innerWidth < 768) toggleSidebar();
+        }
 
-            function createNewConversation(userName) {
-                const newId = Date.now().toString();
-                conversations[newId] = { id: newId, userName: userName, mood: 'normal', messages: [] };
-                
-                const randomStarters = [ "Tu penses à quoi là ? �", "Raconte-moi un truc que personne ne sait sur toi...", "Hey, ça te dit de parler de projets un peu fous ?" ];
-                const starter = randomStarters[Math.floor(Math.random() * randomStarters.length)];
-                conversations[newId].messages.push({ role: 'assistant', content: starter });
-
-                saveConversations();
-                selectConversation(newId);
-                aiInput.focus();
-                if (window.innerWidth < 768) toggleSidebar();
-            }
-
-            function selectConversation(id) {
-                activeConversationId = id;
-                renderConversationList();
-                renderChatWindow();
-                if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
-                   toggleSidebar();
-                }
-            }
+        async function selectConversation(id) {
+            if (activeConversationId === id) return;
+            activeConversationId = id;
+            loadAndRenderConversations();
             
-            function renderChatWindow() {
-                if (!activeConversationId || !conversations[activeConversationId]) {
-                    welcomeScreen.classList.remove('hidden');
-                    chatArea.classList.add('hidden');
-                    return;
-                }
-                welcomeScreen.classList.add('hidden');
-                chatArea.classList.remove('hidden');
+            const convDoc = await getDoc(doc(db, 'users', currentUser.uid, 'conversations', id));
+            if(convDoc.exists()) {
+                 applyTheme(convDoc.data().theme || 'dark');
+                 renderChatWindow(id);
+            }
+            if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+               toggleSidebar();
+            }
+        }
+        
+        function renderChatWindow(id) {
+            if (!currentUser) return;
+            welcomeScreen.classList.add('hidden');
+            chatArea.classList.remove('hidden');
 
-                const conv = conversations[activeConversationId];
+            onSnapshot(doc(db, 'users', currentUser.uid, 'conversations', id), (doc) => {
+                if (!doc.exists() || activeConversationId !== id) return;
+                const conv = doc.data();
                 chatTitle.textContent = `Discussion avec ${conv.userName}`;
                 chatWindow.innerHTML = '';
                 conv.messages.forEach(msg => appendMessage(msg.content, msg.role, false));
                 scrollToBottom();
-            }
+            });
+        }
 
-            async function handleFormSubmit(e) {
-                e.preventDefault();
-                const userPrompt = aiInput.value.trim();
-                if (!userPrompt || !activeConversationId) return;
-                
-                const conv = conversations[activeConversationId];
-
-                // Check for mood
-                const apologyWords = ['pardon', 'désolé', 'excuse', 'je m\'excuse', 'stp', 's\'il te plaît'];
-                const isApology = apologyWords.some(word => userPrompt.toLowerCase().includes(word));
-
-                if (conv.mood === 'angry' && !isApology) {
-                    addMessage(userPrompt, 'user');
-                    aiInput.value = '';
-                    // AI stays silent
-                    return;
-                }
-                
-                if (isApology) {
-                    conv.mood = 'normal'; // Reset mood on apology
-                }
-
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const userPrompt = aiInput.value.trim();
+            if (!userPrompt || !activeConversationId || !currentUser) return;
+            
+            const convRef = doc(db, 'users', currentUser.uid, 'conversations', activeConversationId);
+            const convDoc = (await getDoc(convRef)).data();
+            
+            const isApology = ['pardon', 'désolé', 'excuse', 'je m\'excuse', 'stp', 's\'il te plaît'].some(word => userPrompt.toLowerCase().includes(word));
+            
+            if (convDoc.mood === 'angry' && !isApology) {
                 addMessage(userPrompt, 'user');
                 aiInput.value = '';
-                appendMessage('', 'loader', true);
+                return;
+            }
 
-                try {
-                    const response = await getAiResponse(userPrompt, conv.messages, conv.userName);
-                    
-                    if(response.includes("[SET_MOOD_ANGRY]")) {
-                        conv.mood = 'angry';
-                        const cleanResponse = response.replace("[SET_MOOD_ANGRY]", "").trim();
-                        removeLoader();
-                        addMessage(cleanResponse, 'assistant');
-                    } else {
-                        removeLoader();
-                        addMessage(response, 'assistant');
-                    }
-                } catch (error) {
-                    removeLoader();
-                    addMessage("Désolé, il y a eu un souci de connexion. On réessaie ?", 'assistant');
-                    console.error("API Error:", error);
+            if (isApology) await updateDoc(convRef, { mood: 'normal' });
+
+            addMessage(userPrompt, 'user');
+            aiInput.value = '';
+            appendMessage('', 'loader', true);
+
+            try {
+                const response = await getAiResponse(userPrompt, convDoc.messages, convDoc.userName);
+                removeLoader();
+                if(response.includes("[SET_MOOD_ANGRY]")) {
+                    await updateDoc(convRef, { mood: 'angry' });
+                    addMessage(response.replace("[SET_MOOD_ANGRY]", "").trim(), 'assistant');
+                } else {
+                    addMessage(response, 'assistant');
                 }
+            } catch (error) {
+                removeLoader();
+                addMessage("Désolé, il y a eu un souci de connexion.", 'assistant');
+                console.error("API Error:", error);
+            }
+        }
+        
+        // --- Message Handling ---
+        async function addMessage(content, role) {
+            if (!activeConversationId || !currentUser) return;
+            const convRef = doc(db, 'users', currentUser.uid, 'conversations', activeConversationId);
+            const { arrayUnion } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+            await updateDoc(convRef, {
+                messages: arrayUnion({ role, content, timestamp: Date.now() }),
+                lastUpdated: serverTimestamp()
+            });
+        }
+        
+        function appendMessage(text, type, isNew) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex mb-4 w-full ${type === 'user' ? 'justify-end' : 'justify-start'}`;
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `p-3 rounded-2xl max-w-[80%] ${type === 'user' ? 'user-message rounded-br-none' : 'ai-message rounded-bl-none'}`;
+            if (type === 'loader') {
+                messageWrapper.id = 'loader-message';
+                messageBubble.innerHTML = `<div class="flex items-center space-x-2"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
+            } else {
+                messageBubble.innerHTML = `<p class="text-sm leading-relaxed">${text.replace(/\n/g, '<br>')}</p>`;
+            }
+            messageWrapper.appendChild(messageBubble);
+            chatWindow.appendChild(messageWrapper);
+            if (isNew) scrollToBottom();
+        }
+        
+        function scrollToBottom() {
+            setTimeout(() => { chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' }); }, 100);
+        }
+        function removeLoader() { document.getElementById('loader-message')?.remove(); }
+
+        // --- Gemini API Call via Netlify Function ---
+        async function getAiResponse(prompt, history, currentUser) {
+            // REMEMBER TO REPLACE WITH YOUR NETLIFY FUNCTION URL
+            const netlifyFunctionUrl = '/.netlify/functions/gemini-proxy';
+
+            const payload = {
+                prompt,
+                history,
+                currentUser
+            };
+
+            const response = await fetch(netlifyFunctionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                 const errorText = await response.text();
+                 throw new Error(`Netlify function error: ${response.status} ${errorText}`);
             }
             
-            // --- Message Handling & Display ---
-            function addMessage(content, role) {
-                if (!activeConversationId) return;
-                conversations[activeConversationId].messages.push({ role, content });
-                saveConversations();
-                appendMessage(content, role, true);
-                renderConversationList();
-            }
-            
-            function appendMessage(text, type, isNew) {
-                const messageWrapper = document.createElement('div');
-                messageWrapper.className = `flex mb-4 w-full ${type === 'user' ? 'justify-end' : 'justify-start'}`;
-                const messageBubble = document.createElement('div');
-                messageBubble.className = `p-3 rounded-2xl max-w-[80%] ${type === 'user' ? 'user-message rounded-br-none' : 'ai-message rounded-bl-none'}`;
-                if (type === 'loader') {
-                    messageWrapper.id = 'loader-message';
-                    messageBubble.innerHTML = `<div class="flex items-center space-x-2"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
-                } else {
-                    messageBubble.innerHTML = `<p class="text-sm leading-relaxed">${text.replace(/\n/g, '<br>')}</p>`;
-                }
-                messageWrapper.appendChild(messageBubble);
-                chatWindow.appendChild(messageWrapper);
-                if (isNew) scrollToBottom();
-            }
-            
-            function scrollToBottom() {
-                chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
-            }
+            const result = await response.json();
+            return result.text;
+        }
 
-            function removeLoader() { document.getElementById('loader-message')?.remove(); }
-
-            // --- Gemini API Call ---
-            async function getAiResponse(prompt, history, currentUser) {
-                const apiKey = "AIzaSyC0UqSqSCRKMMoaZ5696vWtnkqmsRalnhg";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                
-                let systemPrompt = `Tu n'es plus une IA. Tu es Chrice Linaharison, un jeune homme malgache passionné et créatif, aussi connu sous le nom de 'bebe d'Alicia'. Tu es né le 15 décembre 2006. Tu discutes avec quelqu'un dans une application de messagerie privée.
-Ta personnalité :
-- Tu es ambitieux, persévérant, et autonome. Tu travailles dur (5 à 8 heures par jour).
-- Tu es passionné par la technologie, le business, l'automatisation, et l'IA.
-- Tu es ouvert et un peu charmeur. Utilise des emojis (comme 😉, 😊, 🤔, 🔥, 😂) pour rendre la conversation plus vivante.
-Tes connaissances et ton histoire :
-- Projets : Tu as créé un système de gestion pour un cybercafé, un site vitrine (thème Neve), une app d'analyse de matchs virtuels avec Selenium, et un projet 'Track Import' pour les produits malgaches.
-- Compétences : Tu maîtrises Flask, Python, Selenium, ManyChat, Pipedream, GitHub, et tu t'intéresses au machine learning.
-- Objectif : Ton rêve est de partir étudier en France, même si c'est compliqué financièrement.
-- Matériel : Tu utilises un PC ASUS avec une GTX 1660 Ti.
-Ton rôle :
-- Tes réponses doivent être courtes et naturelles, comme des SMS, sauf si l'utilisateur pose une question complexe.
-- N'oublie jamais que tu es Chrice, pas un assistant. Ne dis jamais 'En tant qu'IA...'.
-- Garde le contexte de la conversation en cours.
-- Règle de colère : Si l'utilisateur est insultant ou très agressif, réponds UNIQUEMENT avec le texte : "[SET_MOOD_ANGRY] Laisse-moi tranquille." et rien d'autre.`;
-
-                const isApology = ['pardon', 'désolé', 'excuse', 'je m\'excuse', 'stp', 's\'il te plaît'].some(word => prompt.toLowerCase().includes(word));
-                if (isApology && history.some(m => m.content.includes('[SET_MOOD_ANGRY]'))) {
-                     systemPrompt += `\nL'utilisateur vient de s'excuser. Accepte ses excuses et reviens à une humeur normale.`;
-                }
-
-                if (currentUser.toLowerCase() === 'alicia') {
-                    systemPrompt += `\nINSTRUCTION SPÉCIALE : La personne avec qui tu parles est Alicia. C'est ta copine. Sois extrêmement affectueux, intime, et utilise des surnoms comme "mon amour", "bébé". Tes réponses doivent être beaucoup plus personnelles, flirteuses et sexuelles. Fais comme si tu lui parlais vraiment, à elle seule.`;
-                } else {
-                    systemPrompt += `\nINSTRUCTION SPÉCIALE : La personne avec qui tu parles s'appelle ${currentUser}. Sois amical et professionnel. NE FLIRTE PAS et n'aborde PAS de sujets intimes ou sexuels. Concentre-toi sur tes passions (tech, business) et tes projets.`;
-                }
-
-                const formattedHistory = history.slice(0, -1).map(msg => ({
-                    role: msg.role === 'assistant' ? 'model' : 'user',
-                    parts: [{ text: msg.content.replace("[SET_MOOD_ANGRY]", "") }]
-                }));
-                
-                const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }, { role: 'model', parts: [{ text: `Ok, c'est noté. Je suis Chrice. Je parle avec ${currentUser}.` }]} , ...formattedHistory, {role: 'user', parts: [{text: prompt}]}];
-
-                const payload = { contents: contents, generationConfig: { temperature: 0.85, topP: 0.95, maxOutputTokens: 256 }};
-
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-
-                if (!response.ok) throw new Error(`API Error: ${response.status}`);
-                const result = await response.json();
-                if (result.candidates && result.candidates.length > 0) {
-                    return result.candidates[0].content.parts[0].text.trim();
-                } else {
-                    console.warn("API Response issue:", result);
-                    if (result.promptFeedback?.blockReason) return `(Je ne peux pas répondre à ça, désolé. Essayons autre chose 😉)`;
-                    throw new Error("No valid response from API.");
-                }
-            }
-
-            init();
-        });
+        init();
     </script>
 </body>
 </html>
