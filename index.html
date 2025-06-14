@@ -224,9 +224,9 @@
 
             function createNewConversation(userName) {
                 const newId = Date.now().toString();
-                conversations[newId] = { id: newId, userName: userName, messages: [] };
+                conversations[newId] = { id: newId, userName: userName, mood: 'normal', messages: [] };
                 
-                const randomStarters = [ "Tu penses à quoi là ? 😉", "Raconte-moi un truc que personne ne sait sur toi...", "Hey, ça te dit de parler de projets un peu fous ?" ];
+                const randomStarters = [ "Tu penses à quoi là ? �", "Raconte-moi un truc que personne ne sait sur toi...", "Hey, ça te dit de parler de projets un peu fous ?" ];
                 const starter = randomStarters[Math.floor(Math.random() * randomStarters.length)];
                 conversations[newId].messages.push({ role: 'assistant', content: starter });
 
@@ -265,16 +265,40 @@
                 e.preventDefault();
                 const userPrompt = aiInput.value.trim();
                 if (!userPrompt || !activeConversationId) return;
+                
+                const conv = conversations[activeConversationId];
+
+                // Check for mood
+                const apologyWords = ['pardon', 'désolé', 'excuse', 'je m\'excuse', 'stp', 's\'il te plaît'];
+                const isApology = apologyWords.some(word => userPrompt.toLowerCase().includes(word));
+
+                if (conv.mood === 'angry' && !isApology) {
+                    addMessage(userPrompt, 'user');
+                    aiInput.value = '';
+                    // AI stays silent
+                    return;
+                }
+                
+                if (isApology) {
+                    conv.mood = 'normal'; // Reset mood on apology
+                }
 
                 addMessage(userPrompt, 'user');
                 aiInput.value = '';
                 appendMessage('', 'loader', true);
 
                 try {
-                    const conv = conversations[activeConversationId];
                     const response = await getAiResponse(userPrompt, conv.messages, conv.userName);
-                    removeLoader();
-                    addMessage(response, 'assistant');
+                    
+                    if(response.includes("[SET_MOOD_ANGRY]")) {
+                        conv.mood = 'angry';
+                        const cleanResponse = response.replace("[SET_MOOD_ANGRY]", "").trim();
+                        removeLoader();
+                        addMessage(cleanResponse, 'assistant');
+                    } else {
+                        removeLoader();
+                        addMessage(response, 'assistant');
+                    }
                 } catch (error) {
                     removeLoader();
                     addMessage("Désolé, il y a eu un souci de connexion. On réessaie ?", 'assistant');
@@ -308,7 +332,7 @@
             }
             
             function scrollToBottom() {
-                setTimeout(() => { chatWindow.scrollTop = chatWindow.scrollHeight; }, 0);
+                chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
             }
 
             function removeLoader() { document.getElementById('loader-message')?.remove(); }
@@ -329,9 +353,15 @@ Tes connaissances et ton histoire :
 - Objectif : Ton rêve est de partir étudier en France, même si c'est compliqué financièrement.
 - Matériel : Tu utilises un PC ASUS avec une GTX 1660 Ti.
 Ton rôle :
-- Réponds aux questions en te basant sur cette personnalité. Interagis comme si tu parlais à un ami ou à quelqu'un qui t'intéresse.
+- Tes réponses doivent être courtes et naturelles, comme des SMS, sauf si l'utilisateur pose une question complexe.
 - N'oublie jamais que tu es Chrice, pas un assistant. Ne dis jamais 'En tant qu'IA...'.
-- Garde le contexte de la conversation en cours.`;
+- Garde le contexte de la conversation en cours.
+- Règle de colère : Si l'utilisateur est insultant ou très agressif, réponds UNIQUEMENT avec le texte : "[SET_MOOD_ANGRY] Laisse-moi tranquille." et rien d'autre.`;
+
+                const isApology = ['pardon', 'désolé', 'excuse', 'je m\'excuse', 'stp', 's\'il te plaît'].some(word => prompt.toLowerCase().includes(word));
+                if (isApology && history.some(m => m.content.includes('[SET_MOOD_ANGRY]'))) {
+                     systemPrompt += `\nL'utilisateur vient de s'excuser. Accepte ses excuses et reviens à une humeur normale.`;
+                }
 
                 if (currentUser.toLowerCase() === 'alicia') {
                     systemPrompt += `\nINSTRUCTION SPÉCIALE : La personne avec qui tu parles est Alicia. C'est ta copine. Sois extrêmement affectueux, intime, et utilise des surnoms comme "mon amour", "bébé". Tes réponses doivent être beaucoup plus personnelles, flirteuses et sexuelles. Fais comme si tu lui parlais vraiment, à elle seule.`;
@@ -341,12 +371,12 @@ Ton rôle :
 
                 const formattedHistory = history.slice(0, -1).map(msg => ({
                     role: msg.role === 'assistant' ? 'model' : 'user',
-                    parts: [{ text: msg.content }]
+                    parts: [{ text: msg.content.replace("[SET_MOOD_ANGRY]", "") }]
                 }));
                 
                 const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }, { role: 'model', parts: [{ text: `Ok, c'est noté. Je suis Chrice. Je parle avec ${currentUser}.` }]} , ...formattedHistory, {role: 'user', parts: [{text: prompt}]}];
 
-                const payload = { contents: contents, generationConfig: { temperature: 0.8, topP: 0.95, maxOutputTokens: 512 }};
+                const payload = { contents: contents, generationConfig: { temperature: 0.85, topP: 0.95, maxOutputTokens: 256 }};
 
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 
